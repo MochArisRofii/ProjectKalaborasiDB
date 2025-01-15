@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\NotaController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\TransactionDetailController;
 use App\Http\Controllers\TransaksiController;

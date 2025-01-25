@@ -16,16 +16,22 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
-
-// Rute untuk autentikasi (login & logout)
-// Route::get('/', function () {
-    //     return view('produk');
-    // });
 Auth::routes();
-Route::middleware(['auth'])->group(function () {
-    Route::get('/', [ProdukController::class, 'index'])->name('produk.index');
+Route::get('/', function () {
+    return redirect('/login');
+});
+
+Route::middleware(['auth', 'CheckLevel:admin'])->group(function () {
+    Route::get('/admin', [ProdukController::class, 'index'])->name('admin.produk.index');
     Route::resource('produk', ProdukController::class);
     Route::resource('transaksi', TransaksiController::class);
     Route::resource('transaction-details', TransactionDetailController::class);
-    Route::delete('transaction-details/{id}', [TransactionDetailController::class, 'destroy'])->name('transaction-details.destroy');
+    Route::delete('transaction-details/{id}', [TransactionDetailController::class, 'destroy'])->name('admin.transaction-details.destroy');
+});
+
+Route::middleware(['auth', 'CheckLevel:kasir'])->group(function () {
+    Route::get('/kasir', [ProdukController::class, 'index'])->name('kasir.produk.index');
+    Route::resource('transaksi', TransaksiController::class);
+    Route::resource('transaction-details', TransactionDetailController::class);
+    Route::delete('transaction-details/{id}', [TransactionDetailController::class, 'destroy'])->name('kasir.transaction-details.destroy');
 });

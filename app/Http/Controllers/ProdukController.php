@@ -7,6 +7,12 @@ use Illuminate\Http\Request;
 
 class ProdukController extends Controller
 {
+
+    public function __construct()
+    {
+        // Middleware untuk memastikan hanya admin yang bisa mengakses beberapa method
+        $this->middleware('CheckLevel:admin')->only(['create', 'store', 'edit', 'update', 'destroy']);
+    }
     /**
      * Display a listing of the resource.
      */
@@ -38,7 +44,7 @@ class ProdukController extends Controller
 
         Produk::create($validated);
 
-        return redirect()->route('produk.index')->with('success', 'Produk berhasil ditambahkan.');
+        return redirect()->route('admin.produk.index')->with('success', 'Produk berhasil ditambahkan.');
     }
 
     /**
@@ -71,7 +77,7 @@ class ProdukController extends Controller
 
         $produk->update($validated);
 
-        return redirect()->route('produk.index')->with('success', 'Produk berhasil diperbarui.');
+        return redirect()->route('admin.produk.index')->with('success', 'Produk berhasil diperbarui.');
     }
 
     /**
@@ -81,6 +87,6 @@ class ProdukController extends Controller
     {
         $produk->delete();
 
-        return redirect()->route('produk.index')->with('success', 'Produk berhasil dihapus.');
+        return redirect()->route('admin.produk.index')->with('success', 'Produk berhasil dihapus.');
     }
 }

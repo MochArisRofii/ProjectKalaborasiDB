@@ -24,9 +24,9 @@
     <tbody>
         @foreach ($produk as $item)
         <tr>
-            <td>{{ $item->nama_produk }}</td>
-            <td>{{ $item->stok }}</td>
-            <td>Rp. {{ number_format($item->harga, 0, ',', '.') }}</td>
+            <td style="color: white;">{{ $item->nama_produk }}</td>
+            <td style="color: white;">{{ $item->stok }}</td>
+            <td style="color: white;"> Rp. {{ number_format($item->harga, 0, ',', '.') }}</td>
             @if(auth()->user()->role == 'admin')
             <td>
                 <a href="{{ route('produk.edit', $item->id) }}" class="btn btn-warning btn-sm">Edit</a>

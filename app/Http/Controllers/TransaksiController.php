@@ -56,7 +56,11 @@ class TransaksiController extends Controller
             ]));
         }
 
-        return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil dibuat.');
+        if (auth()->user()->role == 'admin') {
+            return redirect()->route('admin.transaksi.index')->with('success', 'Transaksi berhasil dibuat.');
+        }
+
+        return redirect()->route('kasir.transaksi.index')->with('success', 'Transaksi berhasil dibuat.');
     }
 
     /**
@@ -96,6 +100,6 @@ class TransaksiController extends Controller
     {
         $transaksi->delete();
 
-        return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil dihapus.');
+        return redirect()->route('admin.transaksi.index')->with('success', 'Transaksi berhasil dihapus.');
     }
 }

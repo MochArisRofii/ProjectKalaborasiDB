@@ -13,11 +13,15 @@ class CheckLevel
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next, ...$roles) 
+    public function handle(Request $request, Closure $next, ...$roles)
     {
-        if (auth()->check() && in_array(auth()->user()->role, $roles)){
+
+        $roles = ['admin', 'kasir'];
+        if (auth()->check() && in_array(auth()->user()->role, $roles)) {
             return $next($request);
         }
-        return redirect('/login');
+
+        // Default redirect jika role tidak dikenali
+        return redirect('/');
     }
 }

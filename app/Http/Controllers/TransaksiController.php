@@ -37,7 +37,24 @@ class TransaksiController extends Controller
         $validated = $request->validate([
             'kode_transaksi' => 'required|string|max:255|unique:transaksis',
             'total_harga' => 'required|numeric|min:0',
+            'produk_id' => 'required|array|min:1', // Pastikan ada produk yang dipilih
+            'produk_id.*' => 'required|exists:produks,id', // Pastikan produk yang dipilih ada dalam database
+            'jumlah' => 'required|array|min:1',
+            'jumlah.*' => 'required|numeric|min:1', // Pastikan jumlahnya lebih dari 0
         ]);
+
+        // Validasi stok produk sebelum menyimpan transaksi
+        foreach ($request->produk_id as $index => $produk_id) {
+            $produk = Produk::find($produk_id);
+            $jumlah = $request->jumlah[$index];
+
+            // Jika jumlah lebih besar dari stok yang tersedia, return error
+            if ($jumlah > $produk->stok) {
+                return redirect()->back()->withErrors([
+                    'produk_id.' . $index => 'Stok produk ' . $produk->nama_produk . ' tidak mencukupi. Stok tersedia: ' . $produk->stok
+                ])->withInput();
+            }
+        }
 
         // Menyimpan transaksi utama
         $transaksi = Transaksi::create([
@@ -45,7 +62,7 @@ class TransaksiController extends Controller
             'total_harga' => $validated['total_harga'],
         ]);
 
-        // Menyimpan detail transaksi menggunakan TransactionDetailController
+        // Menyimpan detail transaksi
         foreach ($request->produk_id as $index => $produk_id) {
             // Kirim request ke TransactionDetailController untuk menyimpan detail transaksi
             $transactionDetailController = new TransactionDetailController();
@@ -56,12 +73,15 @@ class TransaksiController extends Controller
             ]));
         }
 
+        // Redirect ke halaman transaksi dengan pesan sukses
         if (auth()->user()->role == 'admin') {
-            return redirect()->route('admin.transaksi.index')->with('success', 'Transaksi berhasil dibuat.');
+            return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil dibuat.');
         }
 
         return redirect()->route('kasir.transaksi.index')->with('success', 'Transaksi berhasil dibuat.');
     }
+
+
 
     /**
      * Display the specified resource.
@@ -100,6 +120,6 @@ class TransaksiController extends Controller
     {
         $transaksi->delete();
 
-        return redirect()->route('admin.transaksi.index')->with('success', 'Transaksi berhasil dihapus.');
+        return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil dihapus.');
     }
 }

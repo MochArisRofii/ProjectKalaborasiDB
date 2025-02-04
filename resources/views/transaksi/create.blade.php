@@ -3,193 +3,247 @@
 @section('title', 'Tambah Transaksi')
 
 @section('content')
-<div class="container-1 mt-5">
-    <h1 class="text-white mb-4">Tambah Transaksi</h1>
-    <form action="{{ route(auth()->user()->role == 'admin' ? 'transaksi.store' : 'kasir.transaksi.store') }}" method="POST">
-        @csrf
-        <div class="mb-4">
-            <label for="kode_transaksi" class="form-label text-white">Kode Transaksi</label>
-            <input type="text" class="form-control" name="kode_transaksi" id="kode_transaksi" value="{{ 'TRX-' . time() }}" readonly>
-        </div>
+    <div class="container-1 mt-5">
+        <h1 class="text-white mb-4">Tambah Transaksi</h1>
 
-        <div id="product-list">
-            <div class="product-item mb-4">
-                <label for="produk_id_0" class="form-label text-white">Produk</label>
-                <select name="produk_id[]" id="produk_id_0" class="form-select produk-select" required>
-                    <option value="">-- Pilih Produk --</option>
-                    @foreach ($produk as $produk)
-                    <option value="{{ $produk->id }}" data-harga="{{ $produk->harga }}">
-                        {{ $produk->nama_produk }} (Stok: {{ $produk->stok }})
-                    </option>
-                    @endforeach
-                </select>
-
-                <label for="jumlah_0" class="form-label mt-3 text-white">Jumlah</label>
-                <input type="number" name="jumlah[]" id="jumlah_0" class="form-control jumlah-input" min="1" required>
-
-                <label for="subtotal_0" class="form-label mt-3 text-white">Subtotal</label>
-                <input type="text" name="subtotal[]" id="subtotal_0" class="form-control subtotal-input" readonly>
+        <!-- Modal untuk Error -->
+        <div id="errorModal" class="modal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="errorModalLabel">Terjadi Kesalahan</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <ul id="error-list"></ul>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <button type="button" class="btn btn-secondary mb-3" id="add-product">
-            <i class="fas fa-plus-circle"></i> Tambah Produk
-        </button>
+        <form action="{{ route(auth()->user()->role == 'admin' ? 'transaksi.store' : 'kasir.transaksi.store') }}" method="POST">
+            @csrf
+            <div class="mb-4">
+                <label for="kode_transaksi" class="form-label text-white">Kode Transaksi</label>
+                <input type="text" class="form-control" name="kode_transaksi" id="kode_transaksi" value="{{ 'TRX-' . time() }}" readonly>
+            </div>
 
-        <div class="mb-4">
-            <label for="total_harga" class="form-label text-white">Total Harga</label>
-            <input type="text" class="form-control" name="total_harga" id="total_harga" readonly>
-        </div>
+            <div id="product-list">
+                <div class="product-item mb-4">
+                    <label for="produk_id_0" class="form-label text-white">Produk</label>
+                    <select name="produk_id[]" id="produk_id_0" class="form-select produk-select" required>
+                        <option value="">-- Pilih Produk --</option>
+                        @foreach ($produk as $produk)
+                            <option value="{{ $produk->id }}" data-harga="{{ $produk->harga }}">
+                                {{ $produk->nama_produk }} (Stok: {{ $produk->stok }})
+                            </option>
+                        @endforeach
+                    </select>
 
-        <button type="submit" class="btn btn-primary w-100 py-2">Simpan Transaksi</button>
-    </form>
-</div>
+                    <label for="jumlah_0" class="form-label mt-3 text-white">Jumlah</label>
+                    <input type="number" name="jumlah[]" id="jumlah_0" class="form-control jumlah-input" min="1" required>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        let productIndex = 1;
+                    <label for="subtotal_0" class="form-label mt-3 text-white">Subtotal</label>
+                    <input type="text" name="subtotal[]" id="subtotal_0" class="form-control subtotal-input" readonly>
+                </div>
+            </div>
 
-        // Fungsi untuk menambahkan produk
-        document.getElementById('add-product').addEventListener('click', function () {
-            const productList = document.getElementById('product-list');
-            const newProduct = document.querySelector('.product-item').cloneNode(true);
+            <button type="button" class="btn btn-secondary mb-3" id="add-product">
+                <i class="fas fa-plus-circle"></i> Tambah Produk
+            </button>
 
-            newProduct.querySelectorAll('input, select').forEach(function (input) {
-                input.id = input.id.replace(/\d+/, productIndex);
-                input.name = input.name.replace(/\[\d*\]/, `[${productIndex}]`);
-                input.value = '';
+            <div class="mb-4">
+                <label for="total_harga" class="form-label text-white">Total Harga</label>
+                <input type="text" class="form-control" name="total_harga" id="total_harga" readonly>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2">Simpan Transaksi</button>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let productIndex = 1;
+
+            // Fungsi untuk menambahkan produk
+            document.getElementById('add-product').addEventListener('click', function() {
+                const productList = document.getElementById('product-list');
+                const newProduct = document.querySelector('.product-item').cloneNode(true);
+
+                newProduct.querySelectorAll('input, select').forEach(function(input) {
+                    input.id = input.id.replace(/\d+/, productIndex);
+                    input.name = input.name.replace(/\[\d*\]/, `[${productIndex}]`);
+                    input.value = '';
+                });
+
+                productList.appendChild(newProduct);
+                productIndex++;
             });
 
-            productList.appendChild(newProduct);
-            productIndex++;
+            // Fungsi untuk menghitung subtotal dan total harga
+            document.addEventListener('input', function(event) {
+                if (event.target.classList.contains('jumlah-input') || event.target.classList.contains('produk-select')) {
+                    const productItem = event.target.closest('.product-item');
+                    const harga = productItem.querySelector('.produk-select option:checked').dataset.harga || 0;
+                    const jumlah = productItem.querySelector('.jumlah-input').value || 0;
+
+                    const subtotal = harga * jumlah;
+                    productItem.querySelector('.subtotal-input').value = subtotal.toFixed(2);
+
+                    // Hitung total harga
+                    let totalHarga = 0;
+                    document.querySelectorAll('.subtotal-input').forEach(function(input) {
+                        totalHarga += parseFloat(input.value) || 0;
+                    });
+                    document.getElementById('total_harga').value = totalHarga.toFixed(2);
+                }
+            });
+
+            // Cek apakah ada error dan tampilkan modal jika ada
+            @if ($errors->any())
+                const errorList = document.getElementById('error-list');
+                @foreach ($errors->get('produk_id.*') as $error)
+                    const errorItem = document.createElement('li');
+                    errorItem.textContent = "{{ is_array($error) ? implode(', ', $error) : $error }}";
+                    errorList.appendChild(errorItem);
+                @endforeach
+                const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+                errorModal.show();
+            @endif
         });
+    </script>
 
-        // Fungsi untuk menghitung subtotal dan total harga
-        document.addEventListener('input', function (event) {
-            if (event.target.classList.contains('jumlah-input') || event.target.classList.contains('produk-select')) {
-                const productItem = event.target.closest('.product-item');
-                const harga = productItem.querySelector('.produk-select option:checked').dataset.harga || 0;
-                const jumlah = productItem.querySelector('.jumlah-input').value || 0;
+    <style>
+        /* Styling form */
+        .container-1 {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 30px;
+            background-color: #2a2a2a;
+            border-radius: 10px;
+        }
 
-                const subtotal = harga * jumlah;
-                productItem.querySelector('.subtotal-input').value = subtotal.toFixed(2);
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
 
-                // Hitung total harga
-                let totalHarga = 0;
-                document.querySelectorAll('.subtotal-input').forEach(function (input) {
-                    totalHarga += parseFloat(input.value) || 0;
-                });
-                document.getElementById('total_harga').value = totalHarga.toFixed(2);
-            }
-        });
-    });
-</script>
+        .form-label {
+            font-size: 1rem;
+            font-weight: 500;
+        }
 
-<style>
-    /* Styling form */
-    .container-1 {
-        max-width: 600px;
-        margin: 0 auto;
-        padding: 30px;
-        background-color: #2a2a2a;
-        border-radius: 10px;
-    }
+        .form-control {
+            font-size: 1rem;
+            padding: 10px;
+            border-radius: 10px;
+            background-color: #333;
+            color: #fff;
+            border: 1px solid #444;
+        }
 
-    h1 {
-        font-size: 1.8rem;
-        font-weight: 600;
-    }
+        .form-control:focus {
+            border-color: #5cb85c;
+            box-shadow: 0 0 5px rgba(92, 184, 92, 0.5);
+        }
 
-    .form-label {
-        font-size: 1rem;
-        font-weight: 500;
-    }
+        .form-select {
+            font-size: 1rem;
+            padding: 10px;
+            border-radius: 10px;
+            background-color: #333;
+            color: #fff;
+            border: 1px solid #444;
+        }
 
-    .form-control {
-        font-size: 1rem;
-        padding: 10px;
-        border-radius: 10px;
-        background-color: #333;
-        color: #fff;
-        border: 1px solid #444;
-    }
+        .form-select:focus {
+            border-color: #5cb85c;
+            box-shadow: 0 0 5px rgba(92, 184, 92, 0.5);
+        }
 
-    .form-control:focus {
-        border-color: #5cb85c;
-        box-shadow: 0 0 5px rgba(92, 184, 92, 0.5);
-    }
+        .btn {
+            font-size: 1rem;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+        }
 
-    .form-select {
-        font-size: 1rem;
-        padding: 10px;
-        border-radius: 10px;
-        background-color: #333;
-        color: #fff;
-        border: 1px solid #444;
-    }
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
 
-    .form-select:focus {
-        border-color: #5cb85c;
-        box-shadow: 0 0 5px rgba(92, 184, 92, 0.5);
-    }
+        .btn-secondary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
 
-    .btn {
-        font-size: 1rem;
-        border-radius: 30px;
-        transition: all 0.3s ease;
-    }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            border-color: #5a6268;
+        }
 
-    .btn:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
 
-    .btn-secondary {
-        background-color: #6c757d;
-        border-color: #6c757d;
-    }
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
 
-    .btn-secondary:hover {
-        background-color: #5a6268;
-        border-color: #5a6268;
-    }
+        .product-item {
+            padding: 15px;
+            background-color: #3a3a3a;
+            border-radius: 10px;
+        }
 
-    .btn-primary {
-        background-color: #007bff;
-        border-color: #007bff;
-    }
+        .product-item+.product-item {
+            margin-top: 20px;
+        }
 
-    .btn-primary:hover {
-        background-color: #0056b3;
-        border-color: #0056b3;
-    }
+        .mb-4 {
+            margin-bottom: 20px !important;
+        }
 
-    .product-item {
-        padding: 15px;
-        background-color: #3a3a3a;
-        border-radius: 10px;
-    }
+        #add-product {
+            background-color: #28a745;
+            border-color: #28a745;
+            color: white;
+            font-size: 1rem;
+            padding: 10px 20px;
+            border-radius: 30px;
+        }
 
-    .product-item + .product-item {
-        margin-top: 20px;
-    }
+        #add-product:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
 
-    .mb-4 {
-        margin-bottom: 20px !important;
-    }
+        /* Modal Styling */
+        .modal-content {
+            background-color: #333;
+            color: #fff;
+        }
 
-    #add-product {
-        background-color: #28a745;
-        border-color: #28a745;
-        color: white;
-        font-size: 1rem;
-        padding: 10px 20px;
-        border-radius: 30px;
-    }
+        .modal-header {
+            border-bottom: 1px solid #444;
+        }
 
-    #add-product:hover {
-        background-color: #218838;
-        border-color: #1e7e34;
-    }
-</style>
+        .modal-footer {
+            border-top: 1px solid #444;
+        }
+
+        .modal-body ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .modal-body li {
+            padding: 5px 0;
+        }
+    </style>
 @endsection

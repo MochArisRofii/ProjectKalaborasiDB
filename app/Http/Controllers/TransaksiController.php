@@ -24,8 +24,8 @@ class TransaksiController extends Controller
     public function create()
     {
         // Ambil data produk dari database
-        $produk = Produk::all();
-        return view('transaksi.create', compact('produk'));
+        $produks = Produk::all();
+        return view('transaksi.create', compact('produks'));
     }
 
     /**

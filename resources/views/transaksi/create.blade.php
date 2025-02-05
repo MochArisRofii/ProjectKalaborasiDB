@@ -28,7 +28,7 @@
             @csrf
             <div class="mb-4">
                 <label for="kode_transaksi" class="form-label text-white">Kode Transaksi</label>
-                <input type="text" class="form-control" name="kode_transaksi" id="kode_transaksi" value="{{ 'TRX-' . time() }}" readonly>
+                <input type="text" class="form-control" name="kode_transaksi" id="kode_transaksi" value="{{ 'CTS-' . time() }}" readonly>
             </div>
 
             <div id="product-list">
@@ -36,7 +36,7 @@
                     <label for="produk_id_0" class="form-label text-white">Produk</label>
                     <select name="produk_id[]" id="produk_id_0" class="form-select produk-select" required>
                         <option value="">-- Pilih Produk --</option>
-                        @foreach ($produk as $produk)
+                        @foreach ($produks as $produk)
                             <option value="{{ $produk->id }}" data-harga="{{ $produk->harga }}">
                                 {{ $produk->nama_produk }} (Stok: {{ $produk->stok }})
                             </option>

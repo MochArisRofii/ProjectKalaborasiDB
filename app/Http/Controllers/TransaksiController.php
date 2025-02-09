@@ -33,22 +33,22 @@ class TransaksiController extends Controller
      */
     public function store(Request $request)
     {
-        // Validasi data transaksi
+        // Validasi data transaksi dari request
         $validated = $request->validate([
-            'kode_transaksi' => 'required|string|max:255|unique:transaksis',
-            'total_harga' => 'required|numeric|min:0',
-            'produk_id' => 'required|array|min:1', // Pastikan ada produk yang dipilih
-            'produk_id.*' => 'required|exists:produks,id', // Pastikan produk yang dipilih ada dalam database
-            'jumlah' => 'required|array|min:1',
-            'jumlah.*' => 'required|numeric|min:1', // Pastikan jumlahnya lebih dari 0
+            'kode_transaksi' => 'required|string|max:255|unique:transaksis', // Kode transaksi wajib, unik, dan maksimal 255 karakter
+            'total_harga' => 'required|numeric|min:0', // Total harga harus angka dan minimal 0
+            'produk_id' => 'required|array|min:1', // Harus ada minimal 1 produk yang dipilih
+            'produk_id.*' => 'required|exists:produks,id', // Setiap produk yang dipilih harus ada di tabel 'produks'
+            'jumlah' => 'required|array|min:1', // Jumlah produk harus berbentuk array dan minimal 1
+            'jumlah.*' => 'required|numeric|min:1', // Setiap jumlah produk harus lebih dari 0
         ]);
 
-        // Validasi stok produk sebelum menyimpan transaksi
+        // Periksa stok produk sebelum menyimpan transaksi
         foreach ($request->produk_id as $index => $produk_id) {
-            $produk = Produk::find($produk_id);
-            $jumlah = $request->jumlah[$index];
+            $produk = Produk::find($produk_id); // Cari produk berdasarkan ID
+            $jumlah = $request->jumlah[$index]; // Ambil jumlah produk yang ingin dibeli
 
-            // Jika jumlah lebih besar dari stok yang tersedia, return error
+            // Jika jumlah yang dibeli lebih besar dari stok yang tersedia, kirim error
             if ($jumlah > $produk->stok) {
                 return redirect()->back()->withErrors([
                     'produk_id.' . $index => 'Stok produk ' . $produk->nama_produk . ' tidak mencukupi. Stok tersedia: ' . $produk->stok
@@ -56,30 +56,31 @@ class TransaksiController extends Controller
             }
         }
 
-        // Menyimpan transaksi utama
+        // Simpan data transaksi ke dalam database
         $transaksi = Transaksi::create([
-            'kode_transaksi' => $validated['kode_transaksi'],
-            'total_harga' => $validated['total_harga'],
+            'kode_transaksi' => $validated['kode_transaksi'], // Simpan kode transaksi
+            'total_harga' => $validated['total_harga'], // Simpan total harga transaksi
         ]);
 
-        // Menyimpan detail transaksi
+        // Simpan detail transaksi untuk setiap produk yang dibeli
         foreach ($request->produk_id as $index => $produk_id) {
-            // Kirim request ke TransactionDetailController untuk menyimpan detail transaksi
+            // Membuat instance TransactionDetailController untuk menyimpan data detail transaksi
             $transactionDetailController = new TransactionDetailController();
             $transactionDetailController->store(new Request([
-                'transaksi_id' => $transaksi->id,
-                'produk_id' => $produk_id,
-                'jumlah' => $request->jumlah[$index],
+                'transaksi_id' => $transaksi->id, // ID transaksi yang baru dibuat
+                'produk_id' => $produk_id, // ID produk yang dibeli
+                'jumlah' => $request->jumlah[$index], // Jumlah produk yang dibeli
             ]));
         }
 
-        // Redirect ke halaman transaksi dengan pesan sukses
+        // Redirect ke halaman yang sesuai berdasarkan role pengguna
         if (auth()->user()->role == 'admin') {
-            return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil dibuat.');
+            return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil dibuat.'); // Jika admin, ke daftar transaksi
         }
 
-        return redirect()->route('kasir.transaksi.index')->with('success', 'Transaksi berhasil dibuat.');
+        return redirect()->route('kasir.transaksi.index')->with('success', 'Transaksi berhasil dibuat.'); // Jika kasir, ke halaman kasir
     }
+
 
 
 

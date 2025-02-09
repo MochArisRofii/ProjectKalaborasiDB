@@ -15,13 +15,17 @@ class CheckLevel
      */
     public function handle(Request $request, Closure $next, ...$roles)
     {
-
+        // Mendefinisikan roles yang diizinkan, yaitu 'admin' dan 'kasir'
         $roles = ['admin', 'kasir'];
+
+        // Mengecek apakah pengguna sudah login dan peran pengguna termasuk dalam peran yang diizinkan
         if (auth()->check() && in_array(auth()->user()->role, $roles)) {
+            // Jika ya, lanjutkan permintaan ke middleware berikutnya
             return $next($request);
         }
 
-        // Default redirect jika role tidak dikenali
+        // Jika role tidak ditemukan atau pengguna tidak memiliki role yang sesuai, redirect ke halaman utama ('/')
         return redirect('/');
     }
+
 }
